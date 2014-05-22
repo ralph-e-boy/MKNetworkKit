@@ -402,7 +402,7 @@ OSStatus extractIdentityAndTrust(CFDataRef inPKCS12Data,
     self.downloadedDataSize = [decoder decodeIntegerForKey:@"downloadedDataSize"];
     self.downloadStreams = [decoder decodeObjectForKey:@"downloadStreams"];
     self.startPosition = [decoder decodeIntegerForKey:@"startPosition"];
-    self.credentialPersistence = [decoder decodeIntegerForKey:@"credentialPersistence"];
+    self.credentialPersistence = (NSURLCredentialPersistence)[decoder decodeIntegerForKey:@"credentialPersistence"];
   }
   return self;
 }
@@ -1060,7 +1060,7 @@ OSStatus extractIdentityAndTrust(CFDataRef inPKCS12Data,        // 5
   
   //
   if (securityError == 0) {                                   // 8
-    CFDictionaryRef myIdentityAndTrust = CFArrayGetValueAtIndex (items, 0);
+    CFDictionaryRef myIdentityAndTrust = (CFDictionaryRef) CFArrayGetValueAtIndex (items, 0);
     const void *tempIdentity = NULL;
     tempIdentity = CFDictionaryGetValue (myIdentityAndTrust,
                                          kSecImportItemIdentity);
@@ -1271,7 +1271,7 @@ OSStatus extractIdentityAndTrust(CFDataRef inPKCS12Data,        // 5
   for(NSOutputStream *stream in self.downloadStreams) {
     
     if ([stream hasSpaceAvailable]) {
-      const uint8_t *dataBuffer = [data bytes];
+      const uint8_t *dataBuffer = ( const uint8_t *) [data bytes];
       [stream write:&dataBuffer[0] maxLength:[data length]];
     }
   }
@@ -1406,12 +1406,18 @@ totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
 
     CGImageSourceRef source = CGImageSourceCreateWithData((__bridge CFDataRef)([self responseData]), NULL);
-    CGImageRef cgImage = CGImageSourceCreateImageAtIndex(source, 0, (__bridge CFDictionaryRef)(@{(id)kCGImageSourceShouldCache:@(YES)}));
+    CGImageRef cgImage = CGImageSourceCreateImageAtIndex(source, 0, (__bridge CFDictionaryRef)(@{(__bridge id)kCGImageSourceShouldCache:@(YES)}));
     UIImage *decompressedImage = [UIImage imageWithCGImage:cgImage];
+      
     if(source)
+    {
       CFRelease(source);
+    }
+      
     if(cgImage)
+    {
       CGImageRelease(cgImage);
+    }
 
     dispatch_async(dispatch_get_main_queue(), ^{
       imageDecompressionHandler(decompressedImage);
