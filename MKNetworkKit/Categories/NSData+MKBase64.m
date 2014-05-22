@@ -279,7 +279,7 @@ char *mk_NewBase64Encode(
 {
 	NSData *data = [aString dataUsingEncoding:NSASCIIStringEncoding];
 	size_t outputLength;
-	void *outputBuffer = mk_NewBase64Decode([data bytes], [data length], &outputLength);
+	void *outputBuffer = mk_NewBase64Decode((const char*)[data bytes], [data length], &outputLength);
 	NSData *result = [NSData dataWithBytes:outputBuffer length:outputLength];
 	free(outputBuffer);
 	return result;
